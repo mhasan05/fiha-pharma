@@ -1,0 +1,12 @@
+[Unit]
+Description=Run bdm-process-pending every day at 11:00 AM
+
+[Timer]
+# Every day at 11:00 local server time.
+OnCalendar=*-*-* 11:00:00
+# If the machine was off at 11:00, run as soon as it powers back on.
+Persistent=true
+Unit=bdm-process-pending.service
+
+[Install]
+WantedBy=timers.target

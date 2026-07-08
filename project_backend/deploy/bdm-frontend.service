@@ -1,0 +1,24 @@
+[Unit]
+Description=BDM Frontend (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=backend_dev
+Group=backend_dev
+
+WorkingDirectory=/home/backend_dev/projects/bdm/project_frontend
+
+# Port nginx proxies the BDM frontend to.
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# Use the absolute path to npm from `which npm` on the server.
+# If node was installed via nvm, this path will be under ~/.nvm/... instead.
+ExecStart=/usr/bin/npm run start
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

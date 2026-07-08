@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "797681749613",
+    "project_id": "fiha-pharma",
+    "storage_bucket": "fiha-pharma.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797681749613:android:82d51c1e414bd4a5ba7964",
+        "android_client_info": {
+          "package_name": "store.fihapharma.shop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9q9rfHsDYWEanZi3OVbE6dEi6UihLtSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

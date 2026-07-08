@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Web only: drop the browser's default focus ring on text inputs — the Input
+   component draws its own focused border. Native is unaffected. */
+input,
+textarea,
+select {
+  outline: none !important;
+  box-shadow: none !important;
+}

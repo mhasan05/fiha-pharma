@@ -1,0 +1,25 @@
+# EAS archives from the monorepo root, so exclude everything that isn't needed
+# to build da_app. (These patterns are applied across the whole archive.)
+
+# Dependencies / build output (restored or generated on the build server)
+node_modules/
+.expo/
+dist/
+web-build/
+android/
+ios/
+*.log
+
+# Sibling monorepo projects — NOT part of the da_app build
+project_frontend/
+project_backend/
+.da_venv/
+da_app.zip
+*.zip
+*.sql
+
+# Local dev / env artifacts
+.env
+.env.local
+scratchpad/
+_inspect_novcs/

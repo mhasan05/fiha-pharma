@@ -1,0 +1,18 @@
+[Unit]
+Description=BDM: move all pending orders to processing
+After=network.target mysql.service
+
+[Service]
+Type=oneshot
+User=backend_dev
+Group=backend_dev
+
+# Project root that contains manage.py
+WorkingDirectory=/home/backend_dev/projects/bdm/project_backend
+
+# Use the SAME Python that runs the app (your virtualenv). Adjust if your
+# venv lives elsewhere — find it on the server with:  which python  (after activating)
+ExecStart=/home/backend_dev/projects/bdm/venv/bin/python manage.py process_pending_orders
+
+# Make sure Django settings are found (matches script/settings.py)
+Environment=DJANGO_SETTINGS_MODULE=script.settings

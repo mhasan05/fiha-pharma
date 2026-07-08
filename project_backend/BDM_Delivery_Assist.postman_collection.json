@@ -1,0 +1,183 @@
+{
+  "info": {
+    "_postman_id": "bdm-da-collection-0002",
+    "name": "BDM Delivery Assist API",
+    "description": "Delivery Assist (DA) endpoints: auth, agent app, admin panel, admin reports.\n\nUsage:\n1. Set the `base_url` collection variable (dev: http://127.0.0.1:8009, prod: https://api.bdmpharmacy.store).\n2. Run **Auth > Login** — it auto-saves the JWT into the `token` variable used by every other request.\n3. Set `order_id`, `deposit_id`, `return_request_id`, `agent_id`, `invoice` variables as needed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8009" },
+    { "key": "token", "value": "" },
+    { "key": "order_id", "value": "1" },
+    { "key": "deposit_id", "value": "1" },
+    { "key": "return_request_id", "value": "1" },
+    { "key": "agent_id", "value": "1" },
+    { "key": "invoice", "value": "INV-20260616-0001" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (phone + password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json && json.access_token) { pm.collectionVariables.set('token', json.access_token); console.log('Token saved'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"01700000000\",\n  \"password\": \"your-password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login/", "host": ["{{base_url}}"], "path": ["auth", "login", ""] },
+            "description": "Returns { status, access_token, data: user }. Agent must have role=delivery_man and is_approved=true."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivery - Agent",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/dashboard/", "host": ["{{base_url}}"], "path": ["delivery", "dashboard", ""] } }
+        },
+        {
+          "name": "My Orders (pending)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/orders/?status=pending", "host": ["{{base_url}}"], "path": ["delivery", "orders", ""], "query": [{ "key": "status", "value": "pending", "description": "pending | delivered | (omit for all)" }] } }
+        },
+        {
+          "name": "Order Detail (with items)",
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{base_url}}/delivery/orders/{{order_id}}/", "host": ["{{base_url}}"], "path": ["delivery", "orders", "{{order_id}}", ""] },
+            "description": "Full order detail INCLUDING items[] — use the item product ids + quantities to build a return request."
+          }
+        },
+        {
+          "name": "Mark Delivered (+ optional collect)",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 600\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/delivery/orders/{{order_id}}/deliver/", "host": ["{{base_url}}"], "path": ["delivery", "orders", "{{order_id}}", "deliver", ""] },
+            "description": "Marks the agent's own shipped order delivered. `amount` optional."
+          }
+        },
+        {
+          "name": "Collect Payment (dues / partial)",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 400,\n  \"note\": \"Due collection\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/delivery/orders/{{order_id}}/collect/", "host": ["{{base_url}}"], "path": ["delivery", "orders", "{{order_id}}", "collect", ""] }
+          }
+        },
+        {
+          "name": "Payment Lookup (by invoice)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/payment/?invoice={{invoice}}", "host": ["{{base_url}}"], "path": ["delivery", "payment", ""], "query": [{ "key": "invoice", "value": "{{invoice}}" }] } }
+        },
+        {
+          "name": "Customer Dues",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/dues/", "host": ["{{base_url}}"], "path": ["delivery", "dues", ""] } }
+        },
+        {
+          "name": "Submit Return Request",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"items\": [\n    { \"product\": 220, \"quantity\": 2, \"reason\": \"damaged\" }\n  ],\n  \"note\": \"End of day\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/delivery/orders/{{order_id}}/return/", "host": ["{{base_url}}"], "path": ["delivery", "orders", "{{order_id}}", "return", ""] },
+            "description": "Creates a PENDING return request (201). Stock is restored / order adjusted only after staff confirm in admin panel."
+          }
+        },
+        {
+          "name": "Return via Order Update (role-based)",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"items\": [\n    { \"product\": 220, \"quantity\": 3 }\n  ],\n  \"reason\": \"damaged\",\n  \"note\": \"end of day\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/orders/orders/{{order_id}}/", "host": ["{{base_url}}"], "path": ["orders", "orders", "{{order_id}}", ""] },
+            "description": "Send the DESIRED remaining items. As a delivery agent -> reductions create a PENDING return request (201). As admin -> applied immediately (200). Agents cannot add/increase."
+          }
+        },
+        {
+          "name": "My Return Requests",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/return-requests/?status=pending", "host": ["{{base_url}}"], "path": ["delivery", "return-requests", ""], "query": [{ "key": "status", "value": "pending", "description": "pending | confirmed | rejected (optional)" }] } }
+        },
+        {
+          "name": "Deposit History",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/deposits/?status=pending", "host": ["{{base_url}}"], "path": ["delivery", "deposits", ""], "query": [{ "key": "status", "value": "pending", "description": "pending | approved | rejected (optional)" }] } }
+        },
+        {
+          "name": "Submit Deposit (auto-cover undeposited)",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"note\": \"End of day\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/delivery/deposits/", "host": ["{{base_url}}"], "path": ["delivery", "deposits", ""] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivery - Admin",
+      "item": [
+        {
+          "name": "Deposits (review queue)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/admin/deposits/?status=pending", "host": ["{{base_url}}"], "path": ["delivery", "admin", "deposits", ""], "query": [{ "key": "status", "value": "pending" }, { "key": "delivery_man", "value": "", "disabled": true }] } }
+        },
+        {
+          "name": "Approve Deposit",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/delivery/admin/deposits/{{deposit_id}}/approve/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "deposits", "{{deposit_id}}", "approve", ""] } }
+        },
+        {
+          "name": "Reject Deposit",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"note\": \"Short by 200\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/delivery/admin/deposits/{{deposit_id}}/reject/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "deposits", "{{deposit_id}}", "reject", ""] } }
+        },
+        {
+          "name": "Return Requests (review queue)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/admin/return-requests/?status=pending", "host": ["{{base_url}}"], "path": ["delivery", "admin", "return-requests", ""], "query": [{ "key": "status", "value": "pending", "description": "pending | confirmed | rejected" }, { "key": "delivery_man", "value": "", "disabled": true }] } }
+        },
+        {
+          "name": "Confirm Return (restores stock)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/delivery/admin/return-requests/{{return_request_id}}/confirm/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "return-requests", "{{return_request_id}}", "confirm", ""] }, "description": "Confirm: restores stock to current product qty and adjusts the order total/due." }
+        },
+        {
+          "name": "Reject Return",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"note\": \"not received\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/delivery/admin/return-requests/{{return_request_id}}/reject/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "return-requests", "{{return_request_id}}", "reject", ""] } }
+        },
+        {
+          "name": "Agents (with load)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/admin/agents/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "agents", ""] } }
+        },
+        {
+          "name": "Assignable Orders",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/delivery/admin/orders/?assigned=unassigned&status=shipped", "host": ["{{base_url}}"], "path": ["delivery", "admin", "orders", ""], "query": [{ "key": "assigned", "value": "unassigned", "description": "unassigned | assigned | all" }, { "key": "status", "value": "shipped" }, { "key": "area", "value": "", "disabled": true }] } }
+        },
+        {
+          "name": "Assign Order",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"delivery_man\": {{agent_id}}\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/delivery/admin/orders/{{order_id}}/assign/", "host": ["{{base_url}}"], "path": ["delivery", "admin", "orders", "{{order_id}}", "assign", ""] } }
+        }
+      ]
+    },
+    {
+      "name": "Reports - Admin",
+      "item": [
+        { "name": "Report Index", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/", "host": ["{{base_url}}"], "path": ["reports", ""] } } },
+        { "name": "Collection Summary", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/collection_summary/", "host": ["{{base_url}}"], "path": ["reports", "collection_summary", ""], "query": [{ "key": "from_datetime", "value": "2026-06-01T00:00:00", "disabled": true }, { "key": "to_datetime", "value": "2026-06-30T23:59:59", "disabled": true }] } } },
+        { "name": "Returns Summary", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/returns_summary/", "host": ["{{base_url}}"], "path": ["reports", "returns_summary", ""], "query": [{ "key": "from_datetime", "value": "2026-06-01T00:00:00", "disabled": true }, { "key": "to_datetime", "value": "2026-06-30T23:59:59", "disabled": true }] } } },
+        { "name": "Due Summary", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/due_summary/", "host": ["{{base_url}}"], "path": ["reports", "due_summary", ""], "query": [{ "key": "from_datetime", "value": "2026-06-01T00:00:00", "disabled": true }, { "key": "to_datetime", "value": "2026-06-30T23:59:59", "disabled": true }] } } },
+        { "name": "Delivery Performance", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/delivery_performance/", "host": ["{{base_url}}"], "path": ["reports", "delivery_performance", ""], "query": [{ "key": "from_datetime", "value": "2026-06-01T00:00:00", "disabled": true }, { "key": "to_datetime", "value": "2026-06-30T23:59:59", "disabled": true }] } } },
+        { "name": "Monthly Special Discount", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/monthly_special_discount/", "host": ["{{base_url}}"], "path": ["reports", "monthly_special_discount", ""], "query": [{ "key": "from_datetime", "value": "2026-01-01T00:00:00", "disabled": true }, { "key": "to_datetime", "value": "2026-12-31T23:59:59", "disabled": true }] } } },
+        { "name": "Order Report", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/order/", "host": ["{{base_url}}"], "path": ["reports", "order", ""], "query": [{ "key": "from_datetime", "value": "", "disabled": true }, { "key": "to_datetime", "value": "", "disabled": true }, { "key": "customer", "value": "", "disabled": true }, { "key": "area", "value": "", "disabled": true }] } } },
+        { "name": "Product Wise Report", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/product_wise/", "host": ["{{base_url}}"], "path": ["reports", "product_wise", ""] } } },
+        { "name": "Customer Balance (order amount & due)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/reports/customer_balance/", "host": ["{{base_url}}"], "path": ["reports", "customer_balance", ""], "query": [{ "key": "customer", "value": "", "disabled": true }, { "key": "from_datetime", "value": "", "disabled": true }, { "key": "to_datetime", "value": "", "disabled": true }] }, "description": "Per-customer total_order_amount / total_collected / total_due. Admin sees all; a customer sees only their own. Optional ?customer=<user_id> and date range." } }
+      ]
+    }
+  ]
+}

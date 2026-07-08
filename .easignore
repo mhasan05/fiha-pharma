@@ -1,0 +1,31 @@
+# EAS Build archives from this monorepo root, but only da_app is the app being
+# built. Exclude everything else so uploads are small/fast.
+# (When this file exists, EAS uses it instead of .gitignore — so it must also
+# list node_modules etc.)
+
+# Dependencies / caches anywhere (restored on the build server)
+**/node_modules/
+**/.expo/
+**/dist/
+**/web-build/
+*.log
+
+# Sibling monorepo projects & large root files (root-anchored, so da_app/app is safe)
+/project_frontend/
+/project_backend/
+/.da_venv/
+/app/
+/da_app.zip
+*.zip
+*.sql
+/DA_MOBILE_PROMPT.md
+/elitdakz_bdm.sql
+
+# da_app local-only artifacts
+/da_app/android/
+/da_app/ios/
+/da_app/scratchpad/
+/da_app/_inspect2/
+/da_app/_inspect_novcs/
+/da_app/.env
+/da_app/.env.local
