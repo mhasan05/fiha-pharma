@@ -197,8 +197,8 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React/Vue frontend
-    "https://fihapharma.cloud",  # Production frontend
-    "https://www.fihapharma.cloud",  # Production frontend
+    "dashboard.fihapharma.cloud",  # Production frontend
+    "https://www.dashboard.fihapharma.cloud",  # Production frontend
 ]
 CORS_ALLOW_CREDENTIALS = True
 
