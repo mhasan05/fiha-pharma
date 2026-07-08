@@ -23,13 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tgq04$8a96x609mhwsy_1+(*79^t1luo5zi2j4odf=n!)@m60u'
+SECRET_KEY = 'BYMpJxvFApzGiRFACAqVnv_5QYejRqF65lZ63mYho6PT23yk7Ia8wGMXsiFpjFM02y0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['fihapharma.cloud', 'www.fihapharma.cloud', 'api.fihapharma.cloud']
 
 AUTH_USER_MODEL = 'accounts.UserAuth'
 # settings.py
@@ -126,7 +126,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'backend_db',
         'USER': 'backend_user',
-        'PASSWORD': 'GK@TE@Sohel2025',
+        'PASSWORD': 'Fiha@+_#01',
         'HOST': 'localhost',   # or VPS IP if external
         'PORT': '3306',
         'OPTIONS': {
@@ -197,8 +197,8 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React/Vue frontend
-    "https://bdmpharmacy.store",  # Production frontend
-    "https://www.bdmpharmacy.store",  # Production frontend
+    "https://fihapharma.cloud",  # Production frontend
+    "https://www.fihapharma.cloud",  # Production frontend
 ]
 CORS_ALLOW_CREDENTIALS = True
 
