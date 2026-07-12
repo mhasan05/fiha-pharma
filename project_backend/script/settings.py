@@ -197,6 +197,10 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React/Vue frontend
+    "http://localhost:8081",  # bdm_app Expo web
+    "http://localhost:8082",  # da_app Expo web
+    "http://127.0.0.1:8081",  # bdm_app Expo web (loopback)
+    "http://127.0.0.1:8082",  # da_app Expo web (loopback)
     "https://dashboard.fihapharma.cloud",  # Production frontend
     "https://www.dashboard.fihapharma.cloud",  # Production frontend
 ]
