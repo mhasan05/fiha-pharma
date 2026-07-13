@@ -7,9 +7,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { getAssignedOrders, getDashboard, getReturnRequests } from "@/api/delivery";
 import { getNotifications } from "@/api/notifications";
+import { getSiteInfo } from "@/api/settings";
 import { qk } from "@/api/queryKeys";
 import { OrderCard } from "@/components/OrderCard";
 import { EmptyState, SectionHeader, Skeleton, StatTile } from "@/components/ui";
+import { mediaUrl } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 import { theme } from "@/theme";
 import type { AppNotification, DeliveryOrder, ReturnRequest } from "@/types/api";
@@ -24,6 +26,12 @@ export default function HomeScreen(): React.ReactElement {
   const orders = useQuery({ queryKey: qk.orders("all"), queryFn: () => getAssignedOrders("all") });
   const returns = useQuery({ queryKey: qk.returnRequests(), queryFn: () => getReturnRequests() });
   const notifs = useQuery({ queryKey: qk.notifications, queryFn: getNotifications });
+  const site = useQuery({ queryKey: ["site-info"], queryFn: getSiteInfo });
+
+  // Brand shown in the header — sourced from Settings → General (site_info).
+  // Falls back to the bundled logo/name while loading or if unset on the backend.
+  const brandName = site.data?.name?.trim() || "Fiha Pharma";
+  const brandLogoUri = mediaUrl(site.data?.logo);
 
   const unread = (notifs.data ?? []).filter((n: AppNotification) => !n.is_read).length;
 
@@ -33,6 +41,7 @@ export default function HomeScreen(): React.ReactElement {
     void orders.refetch();
     void returns.refetch();
     void notifs.refetch();
+    void site.refetch();
   }
 
   const d = dash.data;
@@ -49,9 +58,9 @@ export default function HomeScreen(): React.ReactElement {
         <View className="flex-row items-center justify-between">
           {/* Brand */}
           <View className="flex-1 flex-row items-center">
-            <Image source={LOGO} style={{ width: 38, height: 38 }} resizeMode="contain" />
+            <Image source={brandLogoUri ? { uri: brandLogoUri } : LOGO} style={{ width: 38, height: 38 }} resizeMode="contain" />
             <View className="ml-2.5 flex-1">
-              <Text className="text-xl font-extrabold tracking-tight text-ink">Fiha Pharma</Text>
+              <Text className="text-xl font-extrabold tracking-tight text-ink" numberOfLines={1}>{brandName}</Text>
             </View>
           </View>
 

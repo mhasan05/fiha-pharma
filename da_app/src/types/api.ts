@@ -214,6 +214,20 @@ export interface ApiEnvelope<T> {
   message?: string;
 }
 
+/** Public platform settings (settings → general / site_info). */
+export interface SiteInfo {
+  name: string;
+  logo: string | null;
+  description: string;
+  version: string;
+  delivery_charge: number;
+  contact_email: string;
+  contact_phone: string;
+  whatsapp_number?: string;
+  maintenance_mode: boolean;
+  maintenance_message: string;
+}
+
 /** A published Rider-app release (settings → app releases, app="da"). */
 export interface AppRelease {
   id: number;

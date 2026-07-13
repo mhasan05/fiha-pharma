@@ -51,6 +51,10 @@ export default function HomeScreen(): React.ReactElement {
   const due = balance.data?.total_due ?? 0;
 
   const site = useQuery({ queryKey: ["site-info"], queryFn: getSiteInfo });
+  // Brand shown in the header — sourced from Settings → General (site_info).
+  // Falls back to the bundled logo/name while loading or if unset on the backend.
+  const brandName = site.data?.name?.trim() || "Fiha Pharma";
+  const brandLogoUri = mediaUrl(site.data?.logo, site.data?.version);
   // Admin-set WhatsApp number (digits only, with country code). Empty → hide button.
   const whatsapp = (site.data?.whatsapp_number ?? "").replace(/[^0-9]/g, "");
   function openWhatsApp(): void {
@@ -89,10 +93,10 @@ export default function HomeScreen(): React.ReactElement {
         {/* Row 1 — brand + small alert icons (notification / notice) */}
         <View className="flex-row items-center">
           <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary-50">
-            <Img source={LOGO} style={{ width: 32, height: 32 }} contentFit="contain" />
+            <Img source={brandLogoUri ? { uri: brandLogoUri } : LOGO} style={{ width: 32, height: 32 }} contentFit="contain" />
           </View>
           <View className="ml-3 flex-1 pr-3">
-            <Text className="text-[20px] font-extrabold leading-[24px] tracking-tight text-ink" numberOfLines={1}>Fiha Pharma</Text>
+            <Text className="text-[20px] font-extrabold leading-[24px] tracking-tight text-ink" numberOfLines={1}>{brandName}</Text>
           </View>
           <View className="flex-row items-center" style={{ flexShrink: 0 }}>
             <HeaderAction icon="notifications-outline" size={18} onPress={() => router.push("/notifications" as Href)} c={c} badge={unreadCount} />
